@@ -250,3 +250,31 @@ contract Hope {
     }
 
     function getPledgeCount(address account) external view returns (uint256) {
+        return _pledgesBySender[account].length;
+    }
+
+    function getAnchorIdByHash(bytes32 anchorHash) external view returns (uint256) {
+        return _anchorIdByHash(anchorHash);
+    }
+
+    function getAnchorHashById(uint256 anchorId) external view returns (bytes32) {
+        if (anchorId == 0 || anchorId > _nextAnchorId) revert ErrAnchorNotFound();
+        return _anchorIdToHash[anchorId];
+    }
+
+    // -------------------------------------------------------------------------
+    // Guardian: sweep excess ETH to treasury (only surplus above pledged amounts)
+    // -------------------------------------------------------------------------
+    function sweepToTreasury(uint256 amountWei) external nonReentrant {
+        if (msg.sender != guardian) revert ErrGuardianOnly();
+        if (treasury == address(0)) revert ErrZeroAddress();
+        if (amountWei == 0) revert ErrZeroAmount();
+        uint256 balance = address(this).balance;
+        if (amountWei > balance) revert ErrZeroAmount();
+        (bool ok,) = treasury.call{value: amountWei}("");
+        if (!ok) revert();
+    }
+
+    // -------------------------------------------------------------------------
+    // Guardian: emergency forward to fallback if treasury fails
+    // -------------------------------------------------------------------------

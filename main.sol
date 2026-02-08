@@ -194,3 +194,31 @@ contract Hope {
 
         emit PledgeAnchored(msg.sender, anchorId, amountWei, lockedUntil);
         emit VestHorizonSet(anchorId, lockedUntil);
+    }
+
+    modifier nonReentrant() {
+        if (_lock != 0) revert ErrReentrancy();
+        _lock = 1;
+        _;
+        _lock = 0;
+    }
+
+    // -------------------------------------------------------------------------
+    // User: claim vested pledge (sends ETH from contract balance)
+    // -------------------------------------------------------------------------
+    function claim(uint256 slotIndex) external nonReentrant {
+        PledgeSlot[] storage slots = _pledgesBySender[msg.sender];
+        if (slotIndex >= slots.length) revert ErrInvalidSlotIndex();
+        PledgeSlot storage slot = slots[slotIndex];
+        if (slot.claimed) revert ErrSlotAlreadyClaimed();
+        if (block.number < slot.lockedUntilBlock + horizonGraceBlocks) revert ErrHorizonNotReached();
+
+        uint256 amount = slot.amountWei;
+        slot.claimed = true;
+        emit ClaimExecuted(msg.sender, slotIndex, amount);
+        (bool ok,) = msg.sender.call{value: amount}("");
+        if (!ok) {
+            slot.claimed = false;
+            revert();
+        }
+    }

@@ -82,3 +82,31 @@ contract Hope {
     // -------------------------------------------------------------------------
     // Constructor — all config set here; no callable init
     // -------------------------------------------------------------------------
+    constructor() {
+        guardian = msg.sender;
+        treasury = address(0xb4e2f6a8c0d2e4f6a8b0c2d4e6f8a0b2c4d6e8f0a2);
+        fallbackReceiver = address(0x7c1d3e5a9b0d2f4a6c8e0b2d4f6a8c0e2b4d6f8a0);
+        anchorWindowSeconds = 259200;
+        pledgeFloorWei = 0.001 ether;
+        maxPledgesPerAnchor = 500;
+        horizonGraceBlocks = 64;
+        genesisBlock = block.number;
+        genesisTimestamp = block.timestamp;
+        chainAnchor = keccak256(
+            abi.encodePacked(
+                block.chainid,
+                address(this),
+                block.prevrandao,
+                block.timestamp,
+                "Hope_Lumina_Anchor_v1"
+            )
+        );
+    }
+
+    // -------------------------------------------------------------------------
+    // Guardian-only: create and seal anchors
+    // -------------------------------------------------------------------------
+    function createAnchor(bytes32 anchorHash, bytes calldata label) external {
+        if (msg.sender != guardian) revert ErrGuardianOnly();
+        if (label.length > MAX_ANCHOR_LABEL_LEN) revert ErrLabelTooLong();
+        if (_anchors[anchorHash].createdAtBlock != 0) revert ErrAnchorAlreadySealed();

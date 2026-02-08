@@ -54,3 +54,31 @@ contract Hope {
 
     // -------------------------------------------------------------------------
     // Errors (unique names and messages)
+    // -------------------------------------------------------------------------
+    error ErrGuardianOnly();
+    error ErrAnchorAlreadySealed();
+    error ErrPledgeBelowFloor();
+    error ErrHorizonNotReached();
+    error ErrAnchorNotFound();
+    error ErrSlotAlreadyClaimed();
+    error ErrZeroAmount();
+    error ErrLabelTooLong();
+    error ErrBeaconCooldown();
+    error ErrAnchorNotSealed();
+    error ErrInvalidSlotIndex();
+    error ErrZeroAddress();
+    error ErrReentrancy();
+
+    // -------------------------------------------------------------------------
+    // Events (unique signatures)
+    // -------------------------------------------------------------------------
+    event BeaconLit(uint256 indexed anchorId, bytes32 indexed anchorHash, uint256 totalPledged, uint256 pledgeCount);
+    event PledgeAnchored(address indexed sender, uint256 indexed anchorId, uint256 amountWei, uint256 lockedUntilBlock);
+    event VestHorizonSet(uint256 indexed anchorId, uint256 vestBlock);
+    event ClaimExecuted(address indexed sender, uint256 slotIndex, uint256 amountWei);
+    event AnchorSealed(bytes32 indexed anchorHash, uint256 totalPledged, uint256 pledgeCount);
+    event FallbackReceived(address indexed from, uint256 amountWei);
+
+    // -------------------------------------------------------------------------
+    // Constructor — all config set here; no callable init
+    // -------------------------------------------------------------------------

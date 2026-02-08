@@ -278,3 +278,31 @@ contract Hope {
     // -------------------------------------------------------------------------
     // Guardian: emergency forward to fallback if treasury fails
     // -------------------------------------------------------------------------
+    function forwardToFallback(uint256 amountWei) external nonReentrant {
+        if (msg.sender != guardian) revert ErrGuardianOnly();
+        if (fallbackReceiver == address(0)) revert ErrZeroAddress();
+        if (amountWei == 0) revert ErrZeroAmount();
+        (bool ok,) = fallbackReceiver.call{value: amountWei}("");
+        if (!ok) revert();
+        emit FallbackReceived(msg.sender, amountWei);
+    }
+
+    // -------------------------------------------------------------------------
+    // Config view (single call for UI / integration)
+    // -------------------------------------------------------------------------
+    function getConfig() external view returns (
+        address guardian_,
+        address treasury_,
+        address fallbackReceiver_,
+        uint256 anchorWindowSeconds_,
+        uint256 pledgeFloorWei_,
+        uint256 maxPledgesPerAnchor_,
+        uint256 horizonGraceBlocks_,
+        uint256 genesisBlock_,
+        uint256 genesisTimestamp_
+    ) {
+        return (
+            guardian,
+            treasury,
+            fallbackReceiver,
+            anchorWindowSeconds,

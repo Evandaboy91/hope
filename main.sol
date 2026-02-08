@@ -110,3 +110,31 @@ contract Hope {
         if (msg.sender != guardian) revert ErrGuardianOnly();
         if (label.length > MAX_ANCHOR_LABEL_LEN) revert ErrLabelTooLong();
         if (_anchors[anchorHash].createdAtBlock != 0) revert ErrAnchorAlreadySealed();
+
+        _nextAnchorId += 1;
+        _anchorIdToHash[_nextAnchorId] = anchorHash;
+        _anchors[anchorHash] = AnchorRecord({
+            totalPledged: 0,
+            pledgeCount: 0,
+            createdAtBlock: block.number,
+            sealed: false
+        });
+        totalAnchors += 1;
+        emit BeaconLit(_nextAnchorId, anchorHash, 0, 0);
+    }
+
+    function sealAnchor(bytes32 anchorHash) external {
+        if (msg.sender != guardian) revert ErrGuardianOnly();
+        AnchorRecord storage ar = _anchors[anchorHash];
+        if (ar.createdAtBlock == 0) revert ErrAnchorNotFound();
+        if (ar.sealed) revert ErrAnchorAlreadySealed();
+        ar.sealed = true;
+        emit AnchorSealed(anchorHash, ar.totalPledged, ar.pledgeCount);
+    }
+
+    // -------------------------------------------------------------------------
+    // User: pledge into an anchor (no ETH transfer; record only)
+    // -------------------------------------------------------------------------
+    function pledge(bytes32 anchorHash, uint256 vestBlock) external {
+        if (anchorHash == bytes32(0)) revert ErrAnchorNotFound();
+        AnchorRecord storage ar = _anchors[anchorHash];

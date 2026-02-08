@@ -334,3 +334,31 @@ contract Hope {
             genesisTimestamp
         );
     }
+
+    function canClaim(address account, uint256 slotIndex) external view returns (bool) {
+        PledgeSlot[] storage slots = _pledgesBySender[account];
+        if (slotIndex >= slots.length) return false;
+        PledgeSlot storage s = slots[slotIndex];
+        if (s.claimed) return false;
+        return block.number >= s.lockedUntilBlock + horizonGraceBlocks;
+    }
+
+    /// @return block number at which the given slot becomes claimable (lockedUntilBlock + horizonGraceBlocks)
+    function blockUntilClaimable(address account, uint256 slotIndex) external view returns (uint256) {
+        PledgeSlot[] storage slots = _pledgesBySender[account];
+        if (slotIndex >= slots.length) revert ErrInvalidSlotIndex();
+        PledgeSlot storage s = slots[slotIndex];
+        return s.lockedUntilBlock + horizonGraceBlocks;
+    }
+
+    function hasAnchor(bytes32 anchorHash) external view returns (bool) {
+        return _anchors[anchorHash].createdAtBlock != 0;
+    }
+
+    function isAnchorSealed(bytes32 anchorHash) external view returns (bool) {
+        return _anchors[anchorHash].sealed;
+    }
+
+    // -------------------------------------------------------------------------
+    // Batch views (reduce RPC round-trips for UI)
+    // -------------------------------------------------------------------------

@@ -166,3 +166,31 @@ contract Hope {
     }
 
     // -------------------------------------------------------------------------
+    // User: pledge without ETH (record only; for external funding flows)
+    // -------------------------------------------------------------------------
+    function pledgeRecordOnly(bytes32 anchorHash, uint256 amountWei, uint256 vestBlock) external {
+        if (msg.sender != guardian) revert ErrGuardianOnly();
+        if (anchorHash == bytes32(0)) revert ErrAnchorNotFound();
+        AnchorRecord storage ar = _anchors[anchorHash];
+        if (ar.createdAtBlock == 0) revert ErrAnchorNotFound();
+        if (ar.sealed) revert ErrAnchorAlreadySealed();
+        if (amountWei == 0) revert ErrZeroAmount();
+        if (ar.pledgeCount >= maxPledgesPerAnchor) revert ErrPledgeBelowFloor();
+
+        uint256 lockedUntil = vestBlock == 0 ? block.number + VEST_HORIZON_BLOCKS : vestBlock;
+        if (lockedUntil <= block.number) revert ErrHorizonNotReached();
+
+        uint256 anchorId = _anchorIdByHash(anchorHash);
+        _pledgesBySender[msg.sender].push(PledgeSlot({
+            amountWei: amountWei,
+            lockedUntilBlock: lockedUntil,
+            anchorId: anchorId,
+            claimed: false
+        }));
+
+        ar.totalPledged += amountWei;
+        ar.pledgeCount += 1;
+        totalPledges += 1;
+
+        emit PledgeAnchored(msg.sender, anchorId, amountWei, lockedUntil);
+        emit VestHorizonSet(anchorId, lockedUntil);

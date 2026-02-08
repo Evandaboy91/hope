@@ -306,3 +306,31 @@ contract Hope {
             treasury,
             fallbackReceiver,
             anchorWindowSeconds,
+            pledgeFloorWei,
+            maxPledgesPerAnchor,
+            horizonGraceBlocks,
+            genesisBlock,
+            genesisTimestamp
+        );
+    }
+
+    // -------------------------------------------------------------------------
+    // Beacon state (read-only views for UI / analytics)
+    // -------------------------------------------------------------------------
+    function beaconState() external view returns (
+        uint256 currentBlock,
+        uint256 nextAnchorId,
+        uint256 totalPledges_,
+        uint256 totalAnchors_,
+        uint256 genesisBlock_,
+        uint256 genesisTimestamp_
+    ) {
+        return (
+            block.number,
+            _nextAnchorId,
+            totalPledges,
+            totalAnchors,
+            genesisBlock,
+            genesisTimestamp
+        );
+    }

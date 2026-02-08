@@ -222,3 +222,31 @@ contract Hope {
             revert();
         }
     }
+
+    // -------------------------------------------------------------------------
+    // View: anchor by hash
+    // -------------------------------------------------------------------------
+    function getAnchor(bytes32 anchorHash) external view returns (
+        uint256 totalPledged,
+        uint256 pledgeCount,
+        uint256 createdAtBlock,
+        bool sealed
+    ) {
+        AnchorRecord storage ar = _anchors[anchorHash];
+        if (ar.createdAtBlock == 0) revert ErrAnchorNotFound();
+        return (ar.totalPledged, ar.pledgeCount, ar.createdAtBlock, ar.sealed);
+    }
+
+    function getPledgeSlot(address account, uint256 slotIndex) external view returns (
+        uint256 amountWei,
+        uint256 lockedUntilBlock,
+        uint256 anchorId,
+        bool claimed
+    ) {
+        PledgeSlot[] storage slots = _pledgesBySender[account];
+        if (slotIndex >= slots.length) revert ErrInvalidSlotIndex();
+        PledgeSlot storage s = slots[slotIndex];
+        return (s.amountWei, s.lockedUntilBlock, s.anchorId, s.claimed);
+    }
+
+    function getPledgeCount(address account) external view returns (uint256) {

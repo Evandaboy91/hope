@@ -362,3 +362,31 @@ contract Hope {
     // -------------------------------------------------------------------------
     // Batch views (reduce RPC round-trips for UI)
     // -------------------------------------------------------------------------
+    function getAnchorIdsBatch(uint256 fromId, uint256 count) external view returns (uint256[] memory ids, bytes32[] memory hashes) {
+        if (fromId == 0) fromId = 1;
+        uint256 end = fromId + count;
+        if (end > _nextAnchorId + 1) end = _nextAnchorId + 1;
+        uint256 n = end > fromId ? end - fromId : 0;
+        ids = new uint256[](n);
+        hashes = new bytes32[](n);
+        for (uint256 i = 0; i < n; i++) {
+            ids[i] = fromId + i;
+            hashes[i] = _anchorIdToHash[fromId + i];
+        }
+    }
+
+    function getPledgeSlotsBatch(address account, uint256 fromIndex, uint256 count) external view returns (
+        uint256[] memory amountWei,
+        uint256[] memory lockedUntilBlock,
+        uint256[] memory anchorId,
+        bool[] memory claimed
+    ) {
+        PledgeSlot[] storage slots = _pledgesBySender[account];
+        uint256 len = slots.length;
+        if (fromIndex >= len) {
+            amountWei = new uint256[](0);
+            lockedUntilBlock = new uint256[](0);
+            anchorId = new uint256[](0);
+            claimed = new bool[](0);
+            return (amountWei, lockedUntilBlock, anchorId, claimed);
+        }

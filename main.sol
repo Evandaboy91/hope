@@ -26,3 +26,31 @@ contract Hope {
         uint256 amountWei;
         uint256 lockedUntilBlock;
         uint256 anchorId;
+        bool claimed;
+    }
+
+    struct AnchorRecord {
+        uint256 totalPledged;
+        uint256 pledgeCount;
+        uint256 createdAtBlock;
+        bool sealed;
+    }
+
+    mapping(address => PledgeSlot[]) private _pledgesBySender;
+    mapping(bytes32 => AnchorRecord) private _anchors;
+    mapping(uint256 => bytes32) private _anchorIdToHash;
+    uint256 private _nextAnchorId;
+    uint256 public totalPledges;
+    uint256 public totalAnchors;
+    uint256 private _lock;
+
+    // -------------------------------------------------------------------------
+    // Constants (per-contract unique values)
+    // -------------------------------------------------------------------------
+    uint256 public constant VEST_HORIZON_BLOCKS = 17280;
+    uint256 public constant BEACON_COOLDOWN_BLOCKS = 12;
+    uint256 public constant MAX_ANCHOR_LABEL_LEN = 64;
+    bytes32 public constant DOMAIN_LABEL = 0x8a3f91c2e4b6d8a0c2e4f6a8b0d2e4f6a8b0d2e4f6a8b0d2e4f6a8b0d2e4f6a;
+
+    // -------------------------------------------------------------------------
+    // Errors (unique names and messages)

@@ -446,3 +446,31 @@ contract Hope {
             block.number,
             genesisBlock,
             address(this).balance
+        );
+    }
+
+    /// @dev Compute a deterministic anchor hash from a label (guardian may use this before createAnchor).
+    function computeAnchorHash(bytes calldata label) external pure returns (bytes32) {
+        return keccak256(abi.encodePacked("Hope_Lumina_Anchor", label));
+    }
+
+    /// @dev Check whether vest horizon has passed for a given block (includes grace).
+    function isHorizonReached(uint256 lockedUntilBlock) external view returns (bool) {
+        return block.number >= lockedUntilBlock + horizonGraceBlocks;
+    }
+
+    // -------------------------------------------------------------------------
+    // Eligibility and caps (for UI / integration)
+    // -------------------------------------------------------------------------
+    /// @return Maximum number of pledges allowed per anchor (from immutable config).
+    function capPledgesPerAnchor() external view returns (uint256) {
+        return maxPledgesPerAnchor;
+    }
+
+    /// @return Minimum wei required per pledge when sending ETH (from immutable config).
+    function minPledgeWei() external view returns (uint256) {
+        return pledgeFloorWei;
+    }
+
+    /// @return Default vest horizon in blocks when vestBlock is passed as 0.
+    function defaultVestHorizonBlocks() external pure returns (uint256) {

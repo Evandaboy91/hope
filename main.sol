@@ -418,3 +418,31 @@ contract Hope {
     // Seal hash (commitment for off-chain verification)
     // -------------------------------------------------------------------------
     function sealHash() external view returns (bytes32) {
+        return keccak256(
+            abi.encodePacked(
+                chainAnchor,
+                totalPledges,
+                totalAnchors,
+                genesisBlock,
+                genesisTimestamp,
+                _nextAnchorId
+            )
+        );
+    }
+
+    /// @dev Lumina campaign metrics: single struct for dashboard / PPC reporting.
+    function luminaMetrics() external view returns (
+        uint256 totalPledges_,
+        uint256 totalAnchors_,
+        uint256 nextAnchorId_,
+        uint256 currentBlock_,
+        uint256 genesisBlock_,
+        uint256 contractBalanceWei_
+    ) {
+        return (
+            totalPledges,
+            totalAnchors,
+            _nextAnchorId,
+            block.number,
+            genesisBlock,
+            address(this).balance

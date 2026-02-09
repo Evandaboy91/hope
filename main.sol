@@ -474,3 +474,31 @@ contract Hope {
 
     /// @return Default vest horizon in blocks when vestBlock is passed as 0.
     function defaultVestHorizonBlocks() external pure returns (uint256) {
+        return VEST_HORIZON_BLOCKS;
+    }
+
+    /// @return Grace blocks added after lockedUntilBlock before claim is allowed.
+    function graceBlocks() external view returns (uint256) {
+        return horizonGraceBlocks;
+    }
+
+    /// @dev Returns chain anchor (EIP-155 chain id + contract + deploy-time entropy).
+    function getChainAnchor() external view returns (bytes32) {
+        return chainAnchor;
+    }
+
+    /// @dev Domain label constant for off-chain signing or verification.
+    function getDomainLabel() external pure returns (bytes32) {
+        return DOMAIN_LABEL;
+    }
+
+    // -------------------------------------------------------------------------
+    // Internal
+    // -------------------------------------------------------------------------
+    function _anchorIdByHash(bytes32 anchorHash) internal view returns (uint256) {
+        for (uint256 i = 1; i <= _nextAnchorId; i++) {
+            if (_anchorIdToHash[i] == anchorHash) return i;
+        }
+        revert ErrAnchorNotFound();
+    }
+

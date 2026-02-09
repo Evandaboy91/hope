@@ -502,3 +502,20 @@ contract Hope {
         revert ErrAnchorNotFound();
     }
 
+    // -------------------------------------------------------------------------
+    // Receive ETH (forward to treasury or fallback)
+    // -------------------------------------------------------------------------
+    receive() external payable {
+        if (msg.value == 0) return;
+        if (treasury != address(0)) {
+            (bool ok,) = treasury.call{value: msg.value}("");
+            if (!ok && fallbackReceiver != address(0)) {
+                (bool fb,) = fallbackReceiver.call{value: msg.value}("");
+                if (fb) emit FallbackReceived(msg.sender, msg.value);
+            }
+        } else if (fallbackReceiver != address(0)) {
+            (bool fb,) = fallbackReceiver.call{value: msg.value}("");
+            if (fb) emit FallbackReceived(msg.sender, msg.value);
+        }
+    }
+}

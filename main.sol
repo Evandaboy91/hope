@@ -390,3 +390,31 @@ contract Hope {
             claimed = new bool[](0);
             return (amountWei, lockedUntilBlock, anchorId, claimed);
         }
+        uint256 end = fromIndex + count;
+        if (end > len) end = len;
+        uint256 n = end - fromIndex;
+        amountWei = new uint256[](n);
+        lockedUntilBlock = new uint256[](n);
+        anchorId = new uint256[](n);
+        claimed = new bool[](n);
+        for (uint256 i = 0; i < n; i++) {
+            PledgeSlot storage s = slots[fromIndex + i];
+            amountWei[i] = s.amountWei;
+            lockedUntilBlock[i] = s.lockedUntilBlock;
+            anchorId[i] = s.anchorId;
+            claimed[i] = s.claimed;
+        }
+    }
+
+    function totalPledgedForAnchor(bytes32 anchorHash) external view returns (uint256) {
+        return _anchors[anchorHash].totalPledged;
+    }
+
+    function nextAnchorId() external view returns (uint256) {
+        return _nextAnchorId;
+    }
+
+    // -------------------------------------------------------------------------
+    // Seal hash (commitment for off-chain verification)
+    // -------------------------------------------------------------------------
+    function sealHash() external view returns (bytes32) {
